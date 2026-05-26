@@ -7,51 +7,116 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #f0f0f6;
+      --surface: #ffffff;
+      --border: #e2e2e8;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-muted: #aaa;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --danger: #ef4444;
+      --ph: #ef4444;
+      --pm: #f59e0b;
+      --pl: #22c55e;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e0e14;
+        --surface: #1a1a24;
+        --border: #2a2a38;
+        --text-primary: #ededf0;
+        --text-secondary: #999;
+        --text-muted: #555;
+        --accent: #6366f1;
+        --accent-hover: #818cf8;
+        --danger: #f87171;
+        --ph: #f87171;
+        --pm: #fbbf24;
+        --pl: #4ade80;
+      }
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f5f5f5;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       padding: 60px 16px;
+      color: var(--text-primary);
     }
 
-    .app {
-      width: 100%;
-      max-width: 520px;
+    .app { width: 100%; max-width: 520px; }
+
+    /* ── Header ── */
+    .header { margin-bottom: 28px; }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
     }
 
     h1 {
       font-size: 2rem;
       font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 24px;
       letter-spacing: -0.5px;
     }
 
+    .date-label { font-size: 0.8rem; color: var(--text-muted); }
+
+    .progress-wrap {
+      background: var(--border);
+      border-radius: 999px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #a5b4fc);
+      border-radius: 999px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Input ── */
     .input-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
 
     input[type="text"] {
       flex: 1;
       padding: 12px 16px;
       font-size: 0.95rem;
-      border: 1.5px solid #e0e0e0;
+      border: 1.5px solid var(--border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--surface);
+      color: var(--text-primary);
       outline: none;
       transition: border-color 0.15s;
     }
 
-    input[type="text"]:focus { border-color: #4f46e5; }
+    input[type="text"]::placeholder { color: var(--text-muted); }
+    input[type="text"]:focus { border-color: var(--accent); }
 
     button.add-btn {
       padding: 12px 20px;
-      background: #4f46e5;
+      background: var(--accent);
       color: #fff;
       border: none;
       border-radius: 10px;
@@ -62,59 +127,122 @@
       transition: background 0.15s;
     }
 
-    button.add-btn:hover { background: #4338ca; }
+    button.add-btn:hover { background: var(--accent-hover); }
 
-    .filters {
+    /* ── Priority selector ── */
+    .priority-row {
       display: flex;
+      align-items: center;
       gap: 6px;
       margin-bottom: 16px;
     }
 
+    .priority-label { font-size: 0.78rem; color: var(--text-muted); margin-right: 2px; }
+
+    .p-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .p-btn[data-p="high"] .dot { background: var(--ph); }
+    .p-btn[data-p="mid"]  .dot { background: var(--pm); }
+    .p-btn[data-p="low"]  .dot { background: var(--pl); }
+
+    .p-btn.active[data-p="high"] { border-color: var(--ph); color: var(--ph); background: rgba(239,68,68,0.08); }
+    .p-btn.active[data-p="mid"]  { border-color: var(--pm); color: var(--pm); background: rgba(245,158,11,0.08); }
+    .p-btn.active[data-p="low"]  { border-color: var(--pl); color: var(--pl); background: rgba(34,197,94,0.08); }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
     .filter-btn {
       padding: 6px 14px;
-      border: 1.5px solid #e0e0e0;
-      background: #fff;
-      border-radius: 20px;
-      font-size: 0.85rem;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 999px;
+      font-size: 0.82rem;
       cursor: pointer;
-      color: #555;
+      color: var(--text-secondary);
       transition: all 0.15s;
     }
 
     .filter-btn.active {
-      background: #4f46e5;
-      border-color: #4f46e5;
+      background: var(--accent);
+      border-color: var(--accent);
       color: #fff;
     }
 
+    /* ── Todo list ── */
     .todo-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      list-style: none;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0);   max-height: 80px; margin-bottom: 0; }
+      to   { opacity: 0; transform: translateX(28px); max-height: 0;   margin-bottom: -8px; }
     }
 
     .todo-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      background: #fff;
+      background: var(--surface);
       border-radius: 10px;
-      padding: 14px 16px;
-      border: 1.5px solid #e8e8e8;
+      padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-left: 4px solid transparent;
       transition: box-shadow 0.15s;
+      animation: slideIn 0.2s ease;
     }
 
-    .todo-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .todo-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+
+    .todo-item.p-high { border-left-color: var(--ph); }
+    .todo-item.p-mid  { border-left-color: var(--pm); }
+    .todo-item.p-low  { border-left-color: var(--pl); }
+
+    .todo-item.removing {
+      animation: slideOut 0.22s ease forwards;
+      pointer-events: none;
+      overflow: hidden;
+    }
 
     .todo-item.done .todo-text {
       text-decoration: line-through;
-      color: #aaa;
+      color: var(--text-muted);
     }
 
     input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #4f46e5;
+      width: 18px; height: 18px;
+      accent-color: var(--accent);
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -122,7 +250,7 @@
     .todo-text {
       flex: 1;
       font-size: 0.95rem;
-      color: #1a1a1a;
+      color: var(--text-primary);
       word-break: break-word;
       outline: none;
       border: none;
@@ -133,8 +261,8 @@
     .delete-btn {
       background: none;
       border: none;
-      color: #ccc;
-      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-size: 1rem;
       cursor: pointer;
       padding: 4px;
       line-height: 1;
@@ -143,11 +271,11 @@
       flex-shrink: 0;
     }
 
-    .delete-btn:hover { color: #ef4444; }
+    .delete-btn:hover { color: var(--danger); }
 
     .empty {
       text-align: center;
-      color: #bbb;
+      color: var(--text-muted);
       font-size: 0.9rem;
       padding: 40px 0;
     }
@@ -155,61 +283,85 @@
     .footer {
       margin-top: 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.82rem;
-      color: #aaa;
+      justify-content: flex-end;
     }
 
     .clear-btn {
       background: none;
       border: none;
-      color: #aaa;
+      color: var(--text-muted);
       cursor: pointer;
       font-size: 0.82rem;
       padding: 0;
+      transition: color 0.15s;
     }
 
-    .clear-btn:hover { color: #ef4444; }
+    .clear-btn:hover { color: var(--danger); }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>할 일 목록</h1>
+
+    <div class="header">
+      <div class="header-top">
+        <h1>할 일 목록</h1>
+        <span class="date-label" id="date-label"></span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+      <div class="progress-meta">
+        <span id="progress-text">완료 0%</span>
+        <span id="count-label"></span>
+      </div>
+    </div>
 
     <div class="input-row">
       <input type="text" id="new-todo" placeholder="새 할 일을 입력하세요..." />
       <button class="add-btn" onclick="addTodo()">추가</button>
     </div>
 
+    <div class="priority-row">
+      <span class="priority-label">우선순위</span>
+      <button class="p-btn active" data-p="high" onclick="setPriority('high')"><span class="dot"></span>높음</button>
+      <button class="p-btn"        data-p="mid"  onclick="setPriority('mid')"><span class="dot"></span>중간</button>
+      <button class="p-btn"        data-p="low"  onclick="setPriority('low')"><span class="dot"></span>낮음</button>
+    </div>
+
     <div class="filters">
-      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">전체</button>
-      <button class="filter-btn" data-filter="active" onclick="setFilter('active')">미완료</button>
-      <button class="filter-btn" data-filter="done" onclick="setFilter('done')">완료</button>
+      <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">전체</button>
+      <button class="filter-btn"        data-filter="active" onclick="setFilter('active')">미완료</button>
+      <button class="filter-btn"        data-filter="done"   onclick="setFilter('done')">완료</button>
+      <button class="filter-btn"        data-filter="high"   onclick="setFilter('high')">🔴 높음만</button>
     </div>
 
     <ul class="todo-list" id="todo-list"></ul>
 
     <div class="footer">
-      <span id="count-label"></span>
       <button class="clear-btn" onclick="clearDone()">완료 항목 삭제</button>
     </div>
+
   </div>
 
   <script>
     let todos = JSON.parse(localStorage.getItem('todos') || '[]');
     let filter = 'all';
+    let selectedPriority = 'high';
     let nextId = todos.length ? Math.max(...todos.map(t => t.id)) + 1 : 1;
 
-    function save() {
-      localStorage.setItem('todos', JSON.stringify(todos));
-    }
+    document.getElementById('date-label').textContent =
+      new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+
+    function save() { localStorage.setItem('todos', JSON.stringify(todos)); }
 
     function render() {
       const list = document.getElementById('todo-list');
-      const visible = todos.filter(t =>
-        filter === 'all' ? true : filter === 'done' ? t.done : !t.done
-      );
+      const visible = todos.filter(t => {
+        if (filter === 'done')   return t.done;
+        if (filter === 'active') return !t.done;
+        if (filter === 'high')   return t.priority === 'high';
+        return true;
+      });
 
       list.innerHTML = '';
 
@@ -218,7 +370,8 @@
       } else {
         visible.forEach(t => {
           const li = document.createElement('li');
-          li.className = 'todo-item' + (t.done ? ' done' : '');
+          li.className = `todo-item p-${t.priority || 'low'}${t.done ? ' done' : ''}`;
+          li.dataset.id = t.id;
           li.innerHTML = `
             <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggle(${t.id})" />
             <span class="todo-text" contenteditable="true"
@@ -231,16 +384,20 @@
         });
       }
 
-      const active = todos.filter(t => !t.done).length;
+      const total = todos.length;
+      const done  = todos.filter(t => t.done).length;
+      const pct   = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progress-bar').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = `완료 ${pct}%`;
       document.getElementById('count-label').textContent =
-        `미완료 ${active}개 / 전체 ${todos.length}개`;
+        `미완료 ${total - done}개 / 전체 ${total}개`;
     }
 
     function addTodo() {
       const input = document.getElementById('new-todo');
-      const text = input.value.trim();
+      const text  = input.value.trim();
       if (!text) return;
-      todos.unshift({ id: nextId++, text, done: false });
+      todos.unshift({ id: nextId++, text, done: false, priority: selectedPriority });
       input.value = '';
       save();
       render();
@@ -252,9 +409,14 @@
     }
 
     function remove(id) {
-      todos = todos.filter(t => t.id !== id);
-      save();
-      render();
+      const li = document.querySelector(`[data-id="${id}"]`);
+      if (!li) return;
+      li.classList.add('removing');
+      li.addEventListener('animationend', () => {
+        todos = todos.filter(t => t.id !== id);
+        save();
+        render();
+      }, { once: true });
     }
 
     function editText(id, text) {
@@ -264,10 +426,17 @@
 
     function setFilter(f) {
       filter = f;
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === f);
-      });
+      document.querySelectorAll('.filter-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.filter === f)
+      );
       render();
+    }
+
+    function setPriority(p) {
+      selectedPriority = p;
+      document.querySelectorAll('.p-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.p === p)
+      );
     }
 
     function clearDone() {
