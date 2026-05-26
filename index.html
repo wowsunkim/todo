@@ -297,6 +297,140 @@
     }
 
     .clear-btn:hover { color: var(--danger); }
+
+    /* ── AI Features ── */
+    .ai-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ai-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border: 1.5px solid var(--accent);
+      background: transparent;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--accent);
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .ai-btn:hover:not(:disabled) {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .ai-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .ai-btn.loading::after {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-left: 4px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ai-panel {
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      display: none;
+    }
+
+    .ai-panel.open { display: block; }
+
+    .ai-panel-title {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+
+    .ai-suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ai-suggestion-item:last-child { border-bottom: none; }
+
+    .ai-suggestion-text { flex: 1; color: var(--text-primary); }
+
+    .ai-suggestion-reason { font-size: 0.78rem; color: var(--text-muted); }
+
+    .apply-btn {
+      padding: 3px 10px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.76rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+
+    .apply-btn:hover { background: var(--accent); color: #fff; }
+
+    .apply-all-btn {
+      margin-top: 10px;
+      padding: 6px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .apply-all-btn:hover { background: var(--accent-hover); }
+
+    .ai-summary {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(99,102,241,0.08);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .subtask-list { list-style: none; }
+
+    .subtask-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+    }
+
+    .subtask-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -317,8 +451,8 @@
     </div>
 
     <div class="input-row">
-      <input type="text" id="new-todo" placeholder="새 할 일을 입력하세요..." />
-      <button class="add-btn" onclick="addTodo()">추가</button>
+      <input type="text" id="new-todo" placeholder="새 할 일을 입력하세요... (자연어 입력 가능)" />
+      <button class="add-btn" id="add-btn" onclick="addTodo()">추가</button>
     </div>
 
     <div class="priority-row">
@@ -326,6 +460,24 @@
       <button class="p-btn active" data-p="high" onclick="setPriority('high')"><span class="dot"></span>높음</button>
       <button class="p-btn"        data-p="mid"  onclick="setPriority('mid')"><span class="dot"></span>중간</button>
       <button class="p-btn"        data-p="low"  onclick="setPriority('low')"><span class="dot"></span>낮음</button>
+    </div>
+
+    <div class="ai-toolbar">
+      <button class="ai-btn" id="btn-parse" onclick="aiParse()" title="자연어로 입력한 텍스트를 AI가 분석해 우선순위를 자동 설정합니다">✨ AI 파싱</button>
+      <button class="ai-btn" id="btn-decompose" onclick="aiDecompose()" title="선택한 할 일을 세부 작업으로 분해합니다">🔀 작업 분해</button>
+      <button class="ai-btn" id="btn-suggest" onclick="aiSuggest()" title="전체 할 일 목록을 분석해 우선순위 재조정을 제안합니다">💡 우선순위 제안</button>
+    </div>
+
+    <div class="ai-panel" id="ai-panel-decompose">
+      <div class="ai-panel-title">🔀 작업 분해 결과</div>
+      <ul class="subtask-list" id="subtask-list"></ul>
+      <button class="apply-all-btn" onclick="applyAllSubtasks()">모두 추가</button>
+    </div>
+
+    <div class="ai-panel" id="ai-panel-suggest">
+      <div class="ai-panel-title">💡 AI 우선순위 제안</div>
+      <div id="suggest-list"></div>
+      <button class="apply-all-btn" onclick="applyAllSuggestions()">모두 적용</button>
     </div>
 
     <div class="filters">
@@ -448,6 +600,172 @@
     document.getElementById('new-todo').addEventListener('keydown', e => {
       if (e.key === 'Enter') addTodo();
     });
+
+    // ── AI helpers ──────────────────────────────────────────────────────────
+
+    let pendingSubtasks = [];
+    let pendingSuggestions = [];
+
+    function setAiLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.classList.toggle('loading', loading);
+    }
+
+    function closeAllAiPanels() {
+      document.querySelectorAll('.ai-panel').forEach(p => p.classList.remove('open'));
+    }
+
+    const PRIORITY_COLORS = { high: 'var(--ph)', mid: 'var(--pm)', low: 'var(--pl)' };
+    const PRIORITY_LABELS = { high: '높음', mid: '중간', low: '낮음' };
+
+    // 1) Natural language parse → auto set text + priority
+    async function aiParse() {
+      const input = document.getElementById('new-todo');
+      const text = input.value.trim();
+      if (!text) { input.focus(); return; }
+
+      setAiLoading('btn-parse', true);
+      try {
+        const res = await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        input.value = data.text || text;
+        setPriority(data.priority || 'mid');
+        input.focus();
+      } catch {
+        alert('AI 파싱 중 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.');
+      } finally {
+        setAiLoading('btn-parse', false);
+      }
+    }
+
+    // 2) Task decomposition
+    async function aiDecompose() {
+      const input = document.getElementById('new-todo');
+      const text = input.value.trim();
+      if (!text) { alert('먼저 분해할 할 일을 입력해주세요.'); input.focus(); return; }
+
+      closeAllAiPanels();
+      setAiLoading('btn-decompose', true);
+      try {
+        const res = await fetch('/api/decompose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        pendingSubtasks = data.subtasks || [];
+
+        const ul = document.getElementById('subtask-list');
+        ul.innerHTML = pendingSubtasks.map((s, i) => `
+          <li class="subtask-item">
+            <span class="subtask-dot" style="background:${PRIORITY_COLORS[s.priority]}"></span>
+            <span class="ai-suggestion-text">${s.text}</span>
+            <span class="ai-suggestion-reason">${PRIORITY_LABELS[s.priority]}</span>
+            <button class="apply-btn" onclick="applySubtask(${i})">추가</button>
+          </li>
+        `).join('');
+        document.getElementById('ai-panel-decompose').classList.add('open');
+      } catch {
+        alert('AI 작업 분해 중 오류가 발생했습니다.');
+      } finally {
+        setAiLoading('btn-decompose', false);
+      }
+    }
+
+    function applySubtask(i) {
+      const s = pendingSubtasks[i];
+      if (!s) return;
+      todos.unshift({ id: nextId++, text: s.text, done: false, priority: s.priority });
+      save(); render();
+      const items = document.querySelectorAll('#subtask-list .subtask-item');
+      if (items[i]) {
+        items[i].querySelector('.apply-btn').textContent = '추가됨';
+        items[i].querySelector('.apply-btn').disabled = true;
+      }
+    }
+
+    function applyAllSubtasks() {
+      pendingSubtasks.forEach((s, i) => applySubtask(i));
+      closeAllAiPanels();
+    }
+
+    // 3) Smart priority suggestions
+    async function aiSuggest() {
+      const activeTodos = todos.filter(t => !t.done);
+      if (activeTodos.length < 2) { alert('우선순위 제안을 받으려면 미완료 할 일이 2개 이상 필요합니다.'); return; }
+
+      closeAllAiPanels();
+      setAiLoading('btn-suggest', true);
+      try {
+        const res = await fetch('/api/suggest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ todos: activeTodos })
+        });
+        const data = await res.json();
+        pendingSuggestions = data.suggestions || [];
+
+        const container = document.getElementById('suggest-list');
+        const changedSuggestions = pendingSuggestions.filter(s => {
+          const t = todos.find(t => t.id === s.id);
+          return t && t.priority !== s.priority;
+        });
+
+        if (!changedSuggestions.length) {
+          container.innerHTML = '<div class="ai-summary">현재 우선순위 설정이 적절합니다. 변경이 필요한 항목이 없습니다.</div>';
+          document.getElementById('ai-panel-suggest').querySelector('.apply-all-btn').style.display = 'none';
+        } else {
+          document.getElementById('ai-panel-suggest').querySelector('.apply-all-btn').style.display = '';
+          container.innerHTML = changedSuggestions.map((s, i) => {
+            const t = todos.find(t => t.id === s.id);
+            if (!t) return '';
+            return `
+              <div class="ai-suggestion-item">
+                <span class="subtask-dot" style="background:${PRIORITY_COLORS[s.priority]}"></span>
+                <div class="ai-suggestion-text">
+                  <div>${t.text}</div>
+                  <div class="ai-suggestion-reason">${PRIORITY_LABELS[t.priority]} → ${PRIORITY_LABELS[s.priority]}: ${s.reason}</div>
+                </div>
+                <button class="apply-btn" data-id="${s.id}" onclick="applySuggestion(${s.id}, '${s.priority}', this)">적용</button>
+              </div>
+            `;
+          }).join('');
+        }
+
+        if (data.summary) {
+          container.innerHTML += `<div class="ai-summary">${data.summary}</div>`;
+        }
+
+        document.getElementById('ai-panel-suggest').classList.add('open');
+      } catch {
+        alert('AI 우선순위 제안 중 오류가 발생했습니다.');
+      } finally {
+        setAiLoading('btn-suggest', false);
+      }
+    }
+
+    function applySuggestion(id, priority, btn) {
+      const t = todos.find(t => t.id === id);
+      if (!t) return;
+      t.priority = priority;
+      save(); render();
+      btn.textContent = '적용됨';
+      btn.disabled = true;
+    }
+
+    function applyAllSuggestions() {
+      pendingSuggestions.forEach(s => {
+        const t = todos.find(t => t.id === s.id);
+        if (t) t.priority = s.priority;
+      });
+      save(); render();
+      closeAllAiPanels();
+    }
 
     render();
   </script>
